@@ -1,7 +1,6 @@
 package com.thiastux.beachvolleyhuman;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.asset.TextureKey;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.light.AmbientLight;
@@ -17,7 +16,6 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.*;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.system.AppSettings;
-import com.jme3.texture.Texture;
 import com.thiastux.beachvolleyhuman.model.Ball;
 import com.thiastux.beachvolleyhuman.model.Stickman;
 
@@ -32,6 +30,11 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     private float timeElapsed = 0;
     private BulletAppState bulletAppState;
     private RigidBodyControl ballPhy;
+    private RigidBodyControl terrainPhy;
+    private static boolean DEBUG = false;
+    private RigidBodyControl leftPolePhy;
+    private RigidBodyControl rightPolePhy;
+    private RigidBodyControl netPhy;
 
     private BeachVolleyballSimulator() {
         super();
@@ -39,13 +42,15 @@ public class BeachVolleyballSimulator extends SimpleApplication {
 
     public static void main(String[] args) {
 
+        DEBUG = Boolean.parseBoolean(args[0]);
+
         BeachVolleyballSimulator app = new BeachVolleyballSimulator();
         app.setShowSettings(false);
         AppSettings settings = new AppSettings(true);
-        settings.setWidth(1920);
-        settings.setHeight(1052);
-        settings.setSamples(16);
-        settings.setVSync(true);
+        settings.setWidth(1280);
+        settings.setHeight(720);
+        //settings.setSamples(16);
+        //settings.setVSync(true);
         app.setSettings(settings);
         app.start();
     }
@@ -82,13 +87,17 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     private void initPhysics() {
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
+        bulletAppState.setDebugEnabled(true);
     }
 
     private void setCamera() {
-        flyCam.setEnabled(false);
-        //flyCam.setMoveSpeed(50);
-        cam.setLocation(new Vector3f(0.62f, 10f, -18));
-        cam.lookAtDirection(new Vector3f(0f, -0.25f, 0.9f), Vector3f.UNIT_Y);
+        if (!DEBUG) {
+            flyCam.setEnabled(false);
+            cam.setLocation(new Vector3f(0.62f, 10f, -18));
+            cam.lookAtDirection(new Vector3f(0f, -0.25f, 0.9f), Vector3f.UNIT_Y);
+        } else {
+            flyCam.setMoveSpeed(50);
+        }
     }
 
     private void setDebugInfo() {
@@ -148,8 +157,12 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         rootNode.attachChild(ballGeometry);
         ballGeometry.setLocalTranslation(-5, 0, 0);
 
+        ballGeometry.setShadowMode(ShadowMode.CastAndReceive);
+
         ballPhy = new RigidBodyControl(1f);
         ballGeometry.addControl(ballPhy);
+        bulletAppState.getPhysicsSpace().add(ballPhy);
+        ballPhy.setLinearVelocity(cam.getDirection().mult(25));
     }
 
     private void createTerrain() {
@@ -172,6 +185,10 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         terrainMaterial.setColor("Diffuse", sandColor);
         terrainGeometry.setMaterial(terrainMaterial);
         terrainGeometry.setShadowMode(ShadowMode.Receive);
+
+        terrainPhy = new RigidBodyControl(0.0f);
+        terrainGeometry.addControl(terrainPhy);
+        bulletAppState.getPhysicsSpace().add(terrainPhy);
 
         rootNode.attachChild(terrainGeometry);
     }
@@ -266,6 +283,18 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         mat.setColor("Diffuse", ColorRGBA.Red);
         uNetLineGeom.setMaterial(mat);
 
+        Quad netSurface = new Quad(courtWidth * 2, netHeight / 2 - 1);
+        Geometry netGeometry = new Geometry("netGeom", netSurface);
+        netGeometry.setLocalTranslation(-courtWidth, courtLength, -netHeight);
+        float[] angles = new float[]{(float) Math.toRadians(90), 0, 0};
+        netGeometry.setLocalRotation(new Quaternion(angles));
+        mat = new Material(assetManager,
+                "Common/MatDefs/Light/Lighting.j3md");
+        mat.setBoolean("UseMaterialColors", true);
+        mat.setColor("Ambient", ColorRGBA.Blue);
+        mat.setColor("Diffuse", ColorRGBA.Blue);
+        netGeometry.setMaterial(mat);
+
 
         courtNode.attachChild(sxLineGeom);
         courtNode.attachChild(dxLineGeom);
@@ -275,6 +304,7 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         courtNode.attachChild(rightPoleGeometry);
         courtNode.attachChild(lNetLineGeom);
         courtNode.attachChild(uNetLineGeom);
+        courtNode.attachChild(netGeometry);
         for (Spatial child : courtNode.getChildren()) {
             child.setShadowMode(ShadowMode.Receive);
         }
@@ -285,7 +315,20 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         courtNode.setLocalRotation(rotQuat);
         courtNode.setLocalTranslation(0, -(stickman.TORSO_HEIGHT / 2 + stickman.ULEG_LENGTH + stickman.LLEG_LENGTH) + 0.01f, 1f);
 
+
         rootNode.attachChild(courtNode);
+
+        leftPolePhy = new RigidBodyControl(0.0f);
+        leftPoleGeometry.addControl(leftPolePhy);
+        bulletAppState.getPhysicsSpace().add(leftPolePhy);
+
+        rightPolePhy = new RigidBodyControl(0.0f);
+        rightPoleGeometry.addControl(rightPolePhy);
+        bulletAppState.getPhysicsSpace().add(rightPolePhy);
+
+        netPhy = new RigidBodyControl(0.0f);
+        netGeometry.addControl(netPhy);
+        bulletAppState.getPhysicsSpace().add(netPhy);
     }
 
 

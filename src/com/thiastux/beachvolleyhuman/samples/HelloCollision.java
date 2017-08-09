@@ -1,4 +1,4 @@
-package com.thiastux.beachvolleyhuman;
+package com.thiastux.beachvolleyhuman.samples;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.plugins.ZipLocator;
