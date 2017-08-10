@@ -25,7 +25,7 @@ public class BeachVolleyballSimulator extends SimpleApplication {
 
     private Stickman stickman;
     private HashMap<Integer, Spatial> skeletonMap = new HashMap<>();
-    private Ball ball;
+    private Geometry ballGeometry;
     private Geometry terrainGeometry;
     private float timeElapsed = 0;
     private BulletAppState bulletAppState;
@@ -47,8 +47,8 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         BeachVolleyballSimulator app = new BeachVolleyballSimulator();
         app.setShowSettings(false);
         AppSettings settings = new AppSettings(true);
-        settings.setWidth(1280);
-        settings.setHeight(720);
+        settings.setWidth(Integer.parseInt(args[1]));
+        settings.setHeight(Integer.parseInt(args[2]));
         //settings.setSamples(16);
         //settings.setVSync(true);
         app.setSettings(settings);
@@ -75,10 +75,8 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         timeElapsed += tpf;
-        if (timeElapsed >= 10) {
-            System.out.println("Direction" + cam.getDirection().toString());
-            System.out.println("Location:" + cam.getLocation());
-            System.out.println("Rotation:" + cam.getRotation().toString());
+        if (timeElapsed >= 3) {
+            createBall();
             timeElapsed = 0;
         }
 
@@ -145,8 +143,13 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     }
 
     private void createBall() {
+        if(ballGeometry!=null){
+            rootNode.detachChild(ballGeometry);
+            ballGeometry = null;
+            bulletAppState.getPhysicsSpace().remove(ballPhy);
+        }
         Sphere ballMesh = new Sphere(20, 20, 1f);
-        Geometry ballGeometry = new Geometry("Sphere", ballMesh);
+        ballGeometry = new Geometry("Sphere", ballMesh);
         Material ballMat = new Material(assetManager,
                 "Common/MatDefs/Light/Lighting.j3md");
         ballMat.setBoolean("UseMaterialColors", true);
