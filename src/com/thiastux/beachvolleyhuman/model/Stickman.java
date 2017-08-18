@@ -5,7 +5,13 @@
  */
 package com.thiastux.beachvolleyhuman.model;
 
+import com.bulletphysics.dynamics.RigidBody;
 import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
@@ -55,8 +61,9 @@ public class Stickman {
 
     private HashMap<Integer, Spatial> skeletonMap;
     private Spatial pelvisBone;
+    private RigidBodyControl bodyControl;
 
-    public Stickman(Node rootNode, HashMap<Integer, Spatial> map, AssetManager assetManager) {
+    public Stickman(Node rootNode, HashMap<Integer, Spatial> map, AssetManager assetManager, BulletAppState bulletAppState) {
 
         this.skeletonMap = map;
         
@@ -225,6 +232,10 @@ public class Stickman {
         mat.setColor("Ambient", ColorRGBA.Green);
         mat.setColor("Diffuse", ColorRGBA.Green);
         rHandGeometry.setMaterial(mat);
+        RigidBodyControl rightHandPhy = new RigidBodyControl(0.4f);
+        rHandGeometry.addControl(rightHandPhy);
+        //rHandGeometry.setLocalTranslation(-SHOULDER_WIDTH/2, 0, 0);
+        bulletAppState.getPhysicsSpace().add(rHandGeometry);
 
         //Left wrist
         Sphere lWristMesh = new Sphere(50, 50, LARM_RADIUS);
@@ -388,7 +399,7 @@ public class Stickman {
         skeletonMap.put(3, rightElbowNode);
 
         rightWristNode.attachChild(rWristGeometry);
-        rightWristNode.attachChild(rHandGeometry);
+        rightWristNode.attachChild( rHandGeometry);
         rightWristNode.setLocalTranslation(0, -LARM_LENGTH, 0);
         rHandGeometry.setLocalTranslation(0, -HAND_LENGTH, 0);
         skeletonMap.put(4, rightWristNode);
@@ -438,9 +449,17 @@ public class Stickman {
         lLLegGeometry.setLocalTranslation(0, -LLEG_LENGTH/2, 0);
         skeletonMap.put(11, leftKneeNode);
 
+        CompoundCollisionShape upperBodyCollShape = (CompoundCollisionShape) CollisionShapeFactory.createMeshShape(torsoNode);
+
+        bodyControl = new RigidBodyControl(upperBodyCollShape, 50.0f);
+        bodyControl.setGravity(new Vector3f(0, 0, 0));
+        bodyControl.setKinematic(true);
+        torsoNode.addControl(bodyControl);
+        bulletAppState.getPhysicsSpace().add(bodyControl);
         rootNode.attachChild(torsoNode);
+
         rootNode.attachChild(pelvisNode);
-        
+
     }
 
     public void updateModelBonePosition(Quaternion animationQuaternion, int boneIndex) {
@@ -501,7 +520,8 @@ public class Stickman {
                 rot = new Quaternion(new float[]{0f, 0f, (float) Math.toRadians(animationIndex % 360)});
                 break;
         }
-        skeletonMap.get(boneIndex).setLocalRotation(rot);
+        bodyControl.setPhysicsRotation(rot);
+        //skeletonMap.get(boneIndex).setLocalRotation(rot);
     }
 
     public void rotateBone(int boneIndex, int axisIndex, double degrees) {

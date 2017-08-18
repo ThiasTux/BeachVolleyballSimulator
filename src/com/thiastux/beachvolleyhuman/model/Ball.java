@@ -26,8 +26,6 @@ public class Ball {
         Node ballNode = new Node("BallNode");
         ballNode.setLocalTranslation(-5, 5, 0);
 
-
-
         ballNode.attachChild(ballGeometry);
 
         rootNode.attachChild(ballNode);

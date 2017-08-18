@@ -1,7 +1,9 @@
 package com.thiastux.beachvolleyhuman;
 
+import com.bulletphysics.dynamics.RigidBody;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -29,6 +31,7 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     private Geometry terrainGeometry;
     private float timeElapsed = 0;
     private BulletAppState bulletAppState;
+    private SphereCollisionShape ballCollisionShape;
     private RigidBodyControl ballPhy;
     private RigidBodyControl terrainPhy;
     private static boolean DEBUG = false;
@@ -75,11 +78,11 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         timeElapsed += tpf;
-        if (timeElapsed >= 3) {
+        if (timeElapsed >= 7) {
             createBall();
             timeElapsed = 0;
         }
-
+        stickman.animateBone(0, 1, true);
     }
 
     private void initPhysics() {
@@ -139,7 +142,8 @@ public class BeachVolleyballSimulator extends SimpleApplication {
     }
 
     private void createHuman() {
-        stickman = new Stickman(rootNode, skeletonMap, assetManager);
+        stickman = new Stickman(rootNode, skeletonMap, assetManager, bulletAppState);
+        stickman.rotateBone(4, 1, 90);
     }
 
     private void createBall() {
@@ -162,10 +166,12 @@ public class BeachVolleyballSimulator extends SimpleApplication {
 
         ballGeometry.setShadowMode(ShadowMode.CastAndReceive);
 
-        ballPhy = new RigidBodyControl(1f);
+        ballPhy = new RigidBodyControl(0.4f);
         ballGeometry.addControl(ballPhy);
+        ballGeometry.getControl(RigidBodyControl.class).setRestitution(0.7f);
+        ballGeometry.getControl(RigidBodyControl.class).setFriction(1000f);
         bulletAppState.getPhysicsSpace().add(ballPhy);
-        ballPhy.setLinearVelocity(cam.getDirection().mult(25));
+        ballPhy.setLinearVelocity(new Vector3f(-.3f, 0f, 1f).mult(50));
     }
 
     private void createTerrain() {
@@ -191,6 +197,8 @@ public class BeachVolleyballSimulator extends SimpleApplication {
 
         terrainPhy = new RigidBodyControl(0.0f);
         terrainGeometry.addControl(terrainPhy);
+        terrainGeometry.getControl(RigidBodyControl.class).setRestitution(0.5f);
+        terrainGeometry.getControl(RigidBodyControl.class).setFriction(1000f);
         bulletAppState.getPhysicsSpace().add(terrainPhy);
 
         rootNode.attachChild(terrainGeometry);
