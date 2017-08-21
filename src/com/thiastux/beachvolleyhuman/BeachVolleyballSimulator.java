@@ -1,6 +1,5 @@
 package com.thiastux.beachvolleyhuman;
 
-import com.bulletphysics.dynamics.RigidBody;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
@@ -18,7 +17,6 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.*;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.system.AppSettings;
-import com.thiastux.beachvolleyhuman.model.Ball;
 import com.thiastux.beachvolleyhuman.model.Stickman;
 
 import java.util.HashMap;
@@ -82,7 +80,7 @@ public class BeachVolleyballSimulator extends SimpleApplication {
             createBall();
             timeElapsed = 0;
         }
-        stickman.animateBone(0, 1, true);
+        stickman.animateBone(2, 0, true);
     }
 
     private void initPhysics() {
@@ -162,7 +160,7 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         ballGeometry.setMaterial(ballMat);
 
         rootNode.attachChild(ballGeometry);
-        ballGeometry.setLocalTranslation(-5, 0, 0);
+        ballGeometry.setLocalTranslation(-stickman.SHOULDER_WIDTH / 2 - stickman.UARM_RADIUS * 2, (stickman.UARM_LENGTH + stickman.LARM_LENGTH) * 2, 0);
 
         ballGeometry.setShadowMode(ShadowMode.CastAndReceive);
 
@@ -171,7 +169,7 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         ballGeometry.getControl(RigidBodyControl.class).setRestitution(0.7f);
         ballGeometry.getControl(RigidBodyControl.class).setFriction(1000f);
         bulletAppState.getPhysicsSpace().add(ballPhy);
-        ballPhy.setLinearVelocity(new Vector3f(-.3f, 0f, 1f).mult(50));
+        //ballPhy.setLinearVelocity(new Vector3f(0, 0, 1f).mult(50));
     }
 
     private void createTerrain() {
