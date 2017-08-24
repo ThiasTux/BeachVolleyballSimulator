@@ -23,8 +23,7 @@ import java.util.logging.Logger;
  */
 public class TCPDataClient extends Thread {
 
-    private Object lock;
-    private int tcpPort;
+    private final Object lock;
     private Socket socket;
     private BufferedReader inputBuffer;
     private Quaternion[] animationPacket;
@@ -32,7 +31,7 @@ public class TCPDataClient extends Thread {
     private Quaternion[] priorQuaternions;
     private boolean isExecuted = false;
 
-    public TCPDataClient(Object lock, String[] args) {
+    TCPDataClient(Object lock, String[] args) {
         this.lock = lock;
         animationPacket = new Quaternion[12];
         initializeSocket(args[0], args[1]);
@@ -135,16 +134,10 @@ public class TCPDataClient extends Thread {
                     priorQuaternions[limbPriorIndex] = new Quaternion(paramsValues[0], paramsValues[1], paramsValues[2], paramsValues[3]);
                 }
             }
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | IndexOutOfBoundsException e) {
             Logger.getLogger(BeachVolleyballSimulator.class.getName()).log(Level.SEVERE, null, e);
             System.exit(-1);
-        } catch (IndexOutOfBoundsException e) {
-            Logger.getLogger(BeachVolleyballSimulator.class.getName()).log(Level.SEVERE, null, e);
-            System.exit(-1);
-        } catch (WrongNumberArgsException e) {
-            Logger.getLogger(TCPDataClient.class.getName()).log(Level.SEVERE, null, e);
-            System.exit(-1);
-        } catch (NumberFormatException e) {
+        } catch (WrongNumberArgsException | NumberFormatException e) {
             Logger.getLogger(TCPDataClient.class.getName()).log(Level.SEVERE, null, e);
             System.exit(-1);
         }
@@ -161,13 +154,13 @@ public class TCPDataClient extends Thread {
         }
     }
 
-    public void stopExecution() {
+    void stopExecution() {
         synchronized (lock) {
             isExecuted = false;
         }
     }
 
-    public void startExecution() {
+    void startExecution() {
         synchronized (lock) {
             isExecuted = true;
         }

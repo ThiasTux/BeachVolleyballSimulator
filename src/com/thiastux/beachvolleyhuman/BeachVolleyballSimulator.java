@@ -2,14 +2,20 @@ package com.thiastux.beachvolleyhuman;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.SphereCollisionShape;
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.shapes.HullCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -17,41 +23,67 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.*;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.system.AppSettings;
+import com.thiastux.beachvolleyhuman.model.Const;
 import com.thiastux.beachvolleyhuman.model.Stickman;
+import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.screen.Screen;
+import de.lessvoid.nifty.screen.ScreenController;
 
+import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.HashMap;
 
-public class BeachVolleyballSimulator extends SimpleApplication {
+public class BeachVolleyballSimulator extends SimpleApplication implements PhysicsCollisionListener, ScreenController {
 
+    private static boolean DEBUG = false;
+    private TCPDataClient tcpDataClient;
     private Stickman stickman;
     private HashMap<Integer, Spatial> skeletonMap = new HashMap<>();
     private Geometry ballGeometry;
-    private Geometry terrainGeometry;
-    private float timeElapsed = 0;
     private BulletAppState bulletAppState;
-    private SphereCollisionShape ballCollisionShape;
     private RigidBodyControl ballPhy;
-    private RigidBodyControl terrainPhy;
-    private static boolean DEBUG = false;
-    private RigidBodyControl leftPolePhy;
-    private RigidBodyControl rightPolePhy;
-    private RigidBodyControl netPhy;
+    private Quaternion[] animationQuaternions;
+    private Quaternion preRot;
+    private Quaternion[] previousQuaternions = new Quaternion[12];
+    private ActionListener actionListener = new ActionListener() {
+        @Override
+        public void onAction(String name, boolean isPressed, float tpf) {
+            switch (name) {
+                case "TossBall":
+                    createBall();
+                    break;
+                case "ResetCamera":
+                    System.out.println("ResetCamera");
+                    setCamera();
+                    break;
+                case "ResetGame":
+                    System.out.println("ResetGame");
+                    break;
+            }
+        }
+    };
+    private int numEvent;
+    private Nifty nifty;
 
     private BeachVolleyballSimulator() {
         super();
+    }
+
+    private BeachVolleyballSimulator(String[] args) {
+        tcpDataClient = new TCPDataClient(this, args);
     }
 
     public static void main(String[] args) {
 
         DEBUG = Boolean.parseBoolean(args[0]);
 
-        BeachVolleyballSimulator app = new BeachVolleyballSimulator();
+        BeachVolleyballSimulator app = new BeachVolleyballSimulator(Arrays.copyOfRange(args, 3, args.length));
         app.setShowSettings(false);
         AppSettings settings = new AppSettings(true);
         settings.setWidth(Integer.parseInt(args[1]));
         settings.setHeight(Integer.parseInt(args[2]));
-        //settings.setSamples(16);
-        //settings.setVSync(true);
+        settings.setSamples(16);
+        settings.setVSync(true);
         app.setSettings(settings);
         app.start();
     }
@@ -62,38 +94,155 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         initPhysics();
         setCamera();
         setDebugInfo();
+        initInterface();
         addReferenceSystem();
         createHuman();
-        createBall();
         createTerrain();
         createCourt();
         createTargets();
         setLight();
+        initKeys();
+        computeInitialQuaternions();
+
+        tcpDataClient.startExecution();
 
     }
 
-
     @Override
     public void simpleUpdate(float tpf) {
-        timeElapsed += tpf;
-        if (timeElapsed >= 7) {
-            createBall();
-            timeElapsed = 0;
+        boolean animStart = Const.animationStart;
+        if (animStart) {
+            getData();
+            animateModel();
+        } else {
+            //stickman.animateBone(2, 0, true);
         }
-        stickman.animateBone(2, 0, true);
+    }
+
+    @Override
+    public void stop() {
+        if (!DEBUG) {
+            tcpDataClient.stopExecution();
+        }
+        System.out.println("\nApplication ended");
+        super.stop();
+    }
+
+    private void getData() {
+        animationQuaternions = tcpDataClient.getData();
+    }
+
+    private void animateModel() {
+        for (int i = 0; i < 12; i++) {
+            Quaternion rotQuat = preProcessingQuaternion(i);
+            if (rotQuat != null) {
+                stickman.updateModelBonePosition(rotQuat, i);
+            }
+        }
+        if (!Const.useLegs) {
+            stickman.rotateLegs(previousQuaternions[0]);
+        }
+    }
+
+    private Quaternion preProcessingQuaternion(int i) {
+        if (animationQuaternions[i] == null) {
+            return null;
+        }
+
+        //Normalize quaternion to adjust lost of precision using mG.
+        Quaternion outputQuat = animationQuaternions[i].normalizeLocal();
+
+        if (i == 3 || i == 4) {
+            //if (i == 2) {
+            //outputQuat = new Quaternion(outputQuat.getX(), outputQuat.getY(), outputQuat.getZ(), outputQuat.getW());
+            //outputQuat = outputQuat.mult(qAlignArmR);
+            //outputQuat = outputQuat.normalizeLocal();
+        }
+
+        if (i == 6 || i == 7) {
+            //if (i == 5) {
+            //outputQuat = new Quaternion(outputQuat.getX(), outputQuat.getY(), outputQuat.getZ(), outputQuat.getW());
+            //outputQuat = outputQuat.mult(qAlignArmL);
+            //outputQuat = outputQuat.normalizeLocal();
+        }
+
+
+        outputQuat = outputQuat.mult(preRot);
+
+        outputQuat = new Quaternion(outputQuat.getX(), -outputQuat.getY(), outputQuat.getZ(), outputQuat.getW());
+
+        previousQuaternions[i] = outputQuat.normalizeLocal();
+
+        outputQuat = conjugate(getPrevLimbQuaternion(i)).mult(outputQuat);
+
+        outputQuat = outputQuat.normalizeLocal();
+
+        return outputQuat;
+    }
+
+    private Quaternion conjugate(Quaternion quaternion) {
+        return new Quaternion(-quaternion.getX(), -quaternion.getY(), -quaternion.getZ(), quaternion.getW());
+    }
+
+    private Quaternion getPrevLimbQuaternion(int i) {
+        switch (i) {
+            case 1:
+            case 3:
+            case 4:
+            case 6:
+            case 7:
+            case 9:
+            case 11:
+                return previousQuaternions[i - 1];
+            case 2:
+            case 5:
+            case 8:
+            case 10:
+                return previousQuaternions[0];
+            default:
+                return Quaternion.IDENTITY;
+        }
+
+    }
+
+    private void computeInitialQuaternions() {
+        // Compose two rotations:
+        // First, rotate the rendered model to face inside the screen (negative z)
+        // Then, rotate the rendered model to have the torso horizontal (facing downwards, leg facing north)
+        Quaternion quat1 = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(90));
+        Quaternion quat2 = new Quaternion().fromAngles((float) Math.toRadians(-90), 0f, 0f);
+        preRot = quat1.mult(quat2);
+
+        String print = String.format("qPreRot: %.1f %.1f %.1f %.1f", preRot.getW(), preRot.getX(), preRot.getY(), preRot.getZ());
+        System.out.println(print + "    ");
+
+        Quaternion qAlignArmR = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(90));
+        print = String.format("qRArmRot: %.1f %.1f %.1f %.1f", qAlignArmR.getW(), qAlignArmR.getX(), qAlignArmR.getY(), qAlignArmR.getZ());
+        System.out.println(print + "    ");
+
+        Quaternion qAlignArmL = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(-90));
+        print = String.format("qLArmRot: %.1f %.1f %.1f %.1f", qAlignArmL.getW(), qAlignArmL.getX(), qAlignArmL.getY(), qAlignArmL.getZ());
+        System.out.println(print + "    ");
+
+        for (int i = 0; i < 12; i++) {
+            previousQuaternions[i] = new Quaternion();
+        }
+
     }
 
     private void initPhysics() {
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
         bulletAppState.setDebugEnabled(true);
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -9.81f, 0));
+        bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
     }
 
     private void setCamera() {
         if (!DEBUG) {
             flyCam.setEnabled(false);
-            cam.setLocation(new Vector3f(0.62f, 10f, -18));
-            cam.lookAtDirection(new Vector3f(0f, -0.25f, 0.9f), Vector3f.UNIT_Y);
+            cam.setLocation(new Vector3f(0.62f, 20f, -35));
+            cam.lookAtDirection(new Vector3f(0f, -0.30f, 0.9f), Vector3f.UNIT_Y);
         } else {
             flyCam.setMoveSpeed(50);
         }
@@ -103,6 +252,19 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         setDisplayFps(true);
         setDisplayStatView(true);
         setPauseOnLostFocus(false);
+    }
+
+    private void initInterface() {
+        NiftyJmeDisplay niftyDisplay = new NiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                viewPort);
+
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("score_interface.xml", "controls", this);
+        if (guiViewPort.getProcessors().isEmpty())
+            guiViewPort.addProcessor(niftyDisplay);
+
     }
 
     private void addReferenceSystem() {
@@ -141,17 +303,22 @@ public class BeachVolleyballSimulator extends SimpleApplication {
 
     private void createHuman() {
         stickman = new Stickman(rootNode, skeletonMap, assetManager, bulletAppState);
+        stickman.rotateBone(2, 0, 180);
         stickman.rotateBone(4, 1, 90);
+        //stickman.rotateBone(4, 0, -45);
+        //stickman.rotateBone(4, 2, 90);
+        System.out.println("Hand rotation:" + stickman.getBoneLocation(13).toString());
     }
 
     private void createBall() {
-        if(ballGeometry!=null){
+        numEvent = 0;
+        if (ballGeometry != null) {
             rootNode.detachChild(ballGeometry);
             ballGeometry = null;
             bulletAppState.getPhysicsSpace().remove(ballPhy);
         }
         Sphere ballMesh = new Sphere(20, 20, 1f);
-        ballGeometry = new Geometry("Sphere", ballMesh);
+        ballGeometry = new Geometry("Ball", ballMesh);
         Material ballMat = new Material(assetManager,
                 "Common/MatDefs/Light/Lighting.j3md");
         ballMat.setBoolean("UseMaterialColors", true);
@@ -160,23 +327,24 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         ballGeometry.setMaterial(ballMat);
 
         rootNode.attachChild(ballGeometry);
-        ballGeometry.setLocalTranslation(-stickman.SHOULDER_WIDTH / 2 - stickman.UARM_RADIUS * 2, (stickman.UARM_LENGTH + stickman.LARM_LENGTH) * 2, 0);
+        ballGeometry.setLocalTranslation(-(stickman.SHOULDER_WIDTH + stickman.UARM_RADIUS * 2), 15, 0f);
 
         ballGeometry.setShadowMode(ShadowMode.CastAndReceive);
 
-        ballPhy = new RigidBodyControl(0.4f);
+        HullCollisionShape ballCollShape = new HullCollisionShape(ballGeometry.getMesh());
+        ballPhy = new RigidBodyControl(ballCollShape, 0.4f);
+        ballPhy.setRestitution(2f);
         ballGeometry.addControl(ballPhy);
-        ballGeometry.getControl(RigidBodyControl.class).setRestitution(0.7f);
-        ballGeometry.getControl(RigidBodyControl.class).setFriction(1000f);
         bulletAppState.getPhysicsSpace().add(ballPhy);
-        //ballPhy.setLinearVelocity(new Vector3f(0, 0, 1f).mult(50));
+        ballPhy.setLinearVelocity(new Vector3f(0, .3f, 0).mult(50));
+        bulletAppState.getPhysicsSpace().addCollisionListener(this);
     }
 
     private void createTerrain() {
         float TERRAIN_WIDTH = 250f;
         float TERRAIN_HEIGHT = 750f;
         Quad terrainMesh = new Quad(TERRAIN_WIDTH, TERRAIN_HEIGHT);
-        terrainGeometry = new Geometry("Terrain", terrainMesh);
+        Geometry terrainGeometry = new Geometry("Terrain", terrainMesh);
         terrainGeometry.setLocalRotation(new Quaternion().fromAngles((float) Math.toRadians(-90), 0f, 0f));
         terrainGeometry.setLocalTranslation(-TERRAIN_WIDTH / 2, -(stickman.TORSO_HEIGHT / 2 + stickman.ULEG_LENGTH + stickman.LLEG_LENGTH), TERRAIN_HEIGHT * .75f);
         Material terrainMaterial = new Material(assetManager,
@@ -193,9 +361,9 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         terrainGeometry.setMaterial(terrainMaterial);
         terrainGeometry.setShadowMode(ShadowMode.Receive);
 
-        terrainPhy = new RigidBodyControl(0.0f);
+        RigidBodyControl terrainPhy = new RigidBodyControl(0.0f);
         terrainGeometry.addControl(terrainPhy);
-        terrainGeometry.getControl(RigidBodyControl.class).setRestitution(0.5f);
+        terrainGeometry.getControl(RigidBodyControl.class).setRestitution(0.2f);
         terrainGeometry.getControl(RigidBodyControl.class).setFriction(1000f);
         bulletAppState.getPhysicsSpace().add(terrainPhy);
 
@@ -327,19 +495,18 @@ public class BeachVolleyballSimulator extends SimpleApplication {
 
         rootNode.attachChild(courtNode);
 
-        leftPolePhy = new RigidBodyControl(0.0f);
+        RigidBodyControl leftPolePhy = new RigidBodyControl(0.0f);
         leftPoleGeometry.addControl(leftPolePhy);
         bulletAppState.getPhysicsSpace().add(leftPolePhy);
 
-        rightPolePhy = new RigidBodyControl(0.0f);
+        RigidBodyControl rightPolePhy = new RigidBodyControl(0.0f);
         rightPoleGeometry.addControl(rightPolePhy);
         bulletAppState.getPhysicsSpace().add(rightPolePhy);
 
-        netPhy = new RigidBodyControl(0.0f);
+        RigidBodyControl netPhy = new RigidBodyControl(0.0f);
         netGeometry.addControl(netPhy);
         bulletAppState.getPhysicsSpace().add(netPhy);
     }
-
 
     private void createTargets() {
 
@@ -391,6 +558,64 @@ public class BeachVolleyballSimulator extends SimpleApplication {
         viewPort.addProcessor(dlsr4);
 
         viewPort.setBackgroundColor(ColorRGBA.Cyan);
+
+    }
+
+    private void initKeys() {
+        inputManager.deleteMapping("ResetCamera");
+        inputManager.addMapping("TossBall", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("ResetCamera", new KeyTrigger(KeyInput.KEY_C));
+        inputManager.addMapping("ResetGame", new KeyTrigger(KeyInput.KEY_R));
+        inputManager.addListener(actionListener, "TossBall");
+        inputManager.addListener(actionListener, "ResetCamera");
+        inputManager.addListener(actionListener, "ResetGame");
+
+    }
+
+    @Override
+    public void collision(PhysicsCollisionEvent event) {
+        if (event.getNodeA().getName().equals("rHandGeometry") && event.getNodeB().getName().equals("Ball")) {
+            if (numEvent == 0) {
+                numEvent++;
+                System.out.println("Hand hit the ball");
+                final Spatial hand = event.getNodeA();
+                final Spatial ball = event.getNodeB();
+                hitBall(event, ball, hand);
+            }
+        } else if (event.getNodeB().getName().equals("rHandGeometry") && event.getNodeA().getName().equals("Ball")) {
+            if (numEvent == 0) {
+                numEvent++;
+                System.out.println("Hand hit by the ball");
+                final Spatial hand = event.getNodeB();
+                final Spatial ball = event.getNodeA();
+                hitBall(event, ball, hand);
+            }
+        }
+    }
+
+    private void hitBall(PhysicsCollisionEvent event, Spatial ball, Spatial hand) {
+        Quaternion rotation = hand.getWorldRotation();
+        System.out.println("World rotation:" + rotation.toString());
+        Vector3f vector = Vector3f.UNIT_X;
+        Vector3f rotatedVector = rotation.mult(vector);
+        System.out.println("Vector: " + rotatedVector.toString());
+        float appliedImpulse = event.getAppliedImpulse();
+        System.out.println("Applied impulse:" + appliedImpulse);
+        ballPhy.setLinearVelocity(rotatedVector.mult(appliedImpulse));
+    }
+
+    @Override
+    public void bind(@Nonnull Nifty nifty, @Nonnull Screen screen) {
+
+    }
+
+    @Override
+    public void onStartScreen() {
+
+    }
+
+    @Override
+    public void onEndScreen() {
 
     }
 }
