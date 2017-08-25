@@ -2,6 +2,8 @@ package com.thiastux.beachvolleyhuman;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.PhysicsTickListener;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.shapes.HullCollisionShape;
@@ -33,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class BeachVolleyballSimulator extends SimpleApplication implements PhysicsCollisionListener, ScreenController {
+public class BeachVolleyballSimulator extends SimpleApplication implements PhysicsCollisionListener, PhysicsTickListener, ScreenController {
 
     private static boolean DEBUG = false;
     private TCPDataClient tcpDataClient;
@@ -64,6 +66,12 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
     };
     private int numEvent;
     private Nifty nifty;
+    private RigidBodyControl rHandControl;
+    private Vector3f handAngularVelocity;
+    private Vector3f rLArmAngularVelocity;
+    private Vector3f rUArmAngularVelocity;
+    private RigidBodyControl rLArmControl;
+    private RigidBodyControl rUArmControl;
 
     private BeachVolleyballSimulator() {
         super();
@@ -96,7 +104,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         setDebugInfo();
         initInterface();
         addReferenceSystem();
-        createHuman();
+        createStickman();
         createTerrain();
         createCourt();
         createTargets();
@@ -135,12 +143,9 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
     private void animateModel() {
         for (int i = 0; i < 12; i++) {
             Quaternion rotQuat = preProcessingQuaternion(i);
-            if (rotQuat != null) {
+            if (rotQuat != null && i != 0) {
                 stickman.updateModelBonePosition(rotQuat, i);
             }
-        }
-        if (!Const.useLegs) {
-            stickman.rotateLegs(previousQuaternions[0]);
         }
     }
 
@@ -236,6 +241,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         bulletAppState.setDebugEnabled(true);
         bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -9.81f, 0));
         bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
+        bulletAppState.getPhysicsSpace().addTickListener(this);
     }
 
     private void setCamera() {
@@ -301,13 +307,16 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         rootNode.attachChild(refNode);
     }
 
-    private void createHuman() {
+    private void createStickman() {
         stickman = new Stickman(rootNode, skeletonMap, assetManager, bulletAppState);
         stickman.rotateBone(2, 0, 180);
         stickman.rotateBone(4, 1, 90);
         //stickman.rotateBone(4, 0, -45);
         //stickman.rotateBone(4, 2, 90);
         System.out.println("Hand rotation:" + stickman.getBoneLocation(13).toString());
+        rHandControl = stickman.getrHandControl();
+        rLArmControl = stickman.getrForearmControl();
+        rUArmControl = stickman.getrArmControl();
     }
 
     private void createBall() {
@@ -327,12 +336,12 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         ballGeometry.setMaterial(ballMat);
 
         rootNode.attachChild(ballGeometry);
-        ballGeometry.setLocalTranslation(-(stickman.SHOULDER_WIDTH + stickman.UARM_RADIUS * 2), 15, 0f);
+        ballGeometry.setLocalTranslation(-(stickman.SHOULDER_WIDTH + stickman.UARM_RADIUS * 2), 15, 3f);
 
         ballGeometry.setShadowMode(ShadowMode.CastAndReceive);
 
         HullCollisionShape ballCollShape = new HullCollisionShape(ballGeometry.getMesh());
-        ballPhy = new RigidBodyControl(ballCollShape, 0.4f);
+        ballPhy = new RigidBodyControl(ballCollShape, 0.6f);
         ballPhy.setRestitution(2f);
         ballGeometry.addControl(ballPhy);
         bulletAppState.getPhysicsSpace().add(ballPhy);
@@ -599,9 +608,17 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         Vector3f vector = Vector3f.UNIT_X;
         Vector3f rotatedVector = rotation.mult(vector);
         System.out.println("Vector: " + rotatedVector.toString());
+        Vector3f absoluteVector = new Vector3f(rotatedVector.x, Math.abs(rotatedVector.y), Math.abs(rotatedVector.z));
         float appliedImpulse = event.getAppliedImpulse();
         System.out.println("Applied impulse:" + appliedImpulse);
-        ballPhy.setLinearVelocity(rotatedVector.mult(appliedImpulse));
+        appliedImpulse++;
+        ballPhy.setLinearVelocity(absoluteVector.mult(appliedImpulse * 5));
+        handAngularVelocity = rHandControl.getAngularVelocity();
+        rLArmAngularVelocity = rLArmControl.getAngularVelocity();
+        rUArmAngularVelocity = rUArmControl.getAngularVelocity();
+        System.out.println("Hand angular velocity: " + handAngularVelocity.toString());
+        System.out.println("rLArm angular velocity: " + rLArmAngularVelocity.toString());
+        System.out.println("rUArm angular velocity: " + rUArmAngularVelocity.toString());
     }
 
     @Override
@@ -617,5 +634,15 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
     @Override
     public void onEndScreen() {
 
+    }
+
+    @Override
+    public void prePhysicsTick(PhysicsSpace space, float tpf) {
+
+    }
+
+    @Override
+    public void physicsTick(PhysicsSpace space, float tpf) {
+        handAngularVelocity = rHandControl.getAngularVelocity();
     }
 }

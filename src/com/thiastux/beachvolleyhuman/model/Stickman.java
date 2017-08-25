@@ -59,8 +59,23 @@ public class Stickman {
 
     private HashMap<Integer, Spatial> skeletonMap;
     private Spatial pelvisBone;
+
+    public RigidBodyControl getrHandControl() {
+        return rHandControl;
+    }
+
     private RigidBodyControl rHandControl;
+
+    public RigidBodyControl getrForearmControl() {
+        return rForearmControl;
+    }
+
     private RigidBodyControl rForearmControl;
+
+    public RigidBodyControl getrArmControl() {
+        return rArmControl;
+    }
+
     private RigidBodyControl rArmControl;
 
     public Stickman(Node rootNode, HashMap<Integer, Spatial> map, AssetManager assetManager, BulletAppState bulletAppState) {
@@ -125,7 +140,7 @@ public class Stickman {
          */
         //Right Upper Arm
         Cylinder rUArmMesh = new Cylinder(50, 50, UARM_RADIUS, UARM_LENGTH, true);
-        Geometry rUArmGeometry = new Geometry("Box", rUArmMesh);
+        Geometry rUArmGeometry = new Geometry("rUArmGeometry", rUArmMesh);
         rUArmGeometry.setLocalRotation(vertRotQuat);
         mat = new Material(assetManager,
                 "Common/MatDefs/Light/Lighting.j3md");
@@ -170,7 +185,7 @@ public class Stickman {
          */
         //Right Lower Arm
         Cylinder rLArmMesh = new Cylinder(50, 50, LARM_RADIUS, LARM_LENGTH, true);
-        Geometry rLArmGeometry = new Geometry("Box", rLArmMesh);
+        Geometry rLArmGeometry = new Geometry("rLArmGeometry", rLArmMesh);
         rLArmGeometry.setLocalRotation(vertRotQuat);
         mat = new Material(assetManager,
                 "Common/MatDefs/Light/Lighting.j3md");
