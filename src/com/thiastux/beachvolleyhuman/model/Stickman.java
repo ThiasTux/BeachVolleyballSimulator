@@ -31,30 +31,23 @@ public class Stickman {
 
     private int animationIndex;
 
-    public float getHeight() {
-        return TORSO_HEIGHT + 2 * HEAD_RADIUS + ULEG_LENGTH + LLEG_LENGTH;
-    }
-
     public final float TORSO_HEIGHT = 4f;
-    public final float TORSO_RADIUS = 1.5f;
-    public final float PELVIS_HEIGHT = 2f;
-    public final float PELVIS_RADIUS = 1.0f;
-    public final float HIP_WIDTH = 2f;
+    private final float TORSO_RADIUS = 1.5f;
+    private final float PELVIS_HEIGHT = 2f;
+    private final float PELVIS_RADIUS = 1.0f;
     public final float ULEG_LENGTH = 4f;
     public final float LLEG_LENGTH = 3f;
-    public final float ULEG_RADIUS = 0.5f;
-    public final float LLEG_RADIUS = 0.4f;
-    public final float UARM_LENGTH = 2.6f;
-    public final float LARM_LENGTH = 2.8f;
+    private final float ULEG_RADIUS = 0.5f;
+    private final float LLEG_RADIUS = 0.4f;
+    private final float UARM_LENGTH = 2.6f;
+    private final float LARM_LENGTH = 2.8f;
     public final float UARM_RADIUS = 0.4f;
-    public final float LARM_RADIUS = 0.35f;
-    public final float HAND_WIDTH = 0.4f;
-    public final float HAND_LENGTH = 0.6f;
-    public final float HAND_THICKNESS = 0.1f;
-    public final float SHOULDER_RADIUS = 6.5f;
-    public final float HEAD_RADIUS = 1f;
-    public final float EYE_RADIUS = 0.08f;
-    public final float PUPIL_RADIUS = 0.2f;
+    private final float LARM_RADIUS = 0.35f;
+    private final float HAND_WIDTH = 0.4f;
+    private final float HAND_LENGTH = 0.6f;
+    private final float HAND_THICKNESS = 0.1f;
+    private final float HEAD_RADIUS = 1f;
+    private final float EYE_RADIUS = 0.08f;
     public final float SHOULDER_WIDTH = TORSO_RADIUS + UARM_RADIUS;
 
     private HashMap<Integer, Spatial> skeletonMap;
@@ -65,18 +58,6 @@ public class Stickman {
     }
 
     private RigidBodyControl rHandControl;
-
-    public RigidBodyControl getrForearmControl() {
-        return rForearmControl;
-    }
-
-    private RigidBodyControl rForearmControl;
-
-    public RigidBodyControl getrArmControl() {
-        return rArmControl;
-    }
-
-    private RigidBodyControl rArmControl;
 
     public Stickman(Node rootNode, HashMap<Integer, Spatial> map, AssetManager assetManager, BulletAppState bulletAppState) {
 
@@ -400,7 +381,7 @@ public class Stickman {
         
         rightShoulderNode.attachChild(rShoulderGeometry);
         rightShoulderNode.attachChild(rUArmGeometry);
-        rightShoulderNode.setLocalTranslation(-(TORSO_RADIUS+UARM_RADIUS), 0, 0);
+        rightShoulderNode.setLocalTranslation(-SHOULDER_WIDTH, 0, 0);
         rUArmGeometry.setLocalTranslation(0, -UARM_LENGTH/2, 0);
         skeletonMap.put(2, rightShoulderNode);
         
@@ -419,7 +400,7 @@ public class Stickman {
         
         leftShoulderNode.attachChild(lShoulderGeometry);
         leftShoulderNode.attachChild(lUArmGeometry);
-        leftShoulderNode.setLocalTranslation(TORSO_RADIUS+UARM_RADIUS, 0, 0);
+        leftShoulderNode.setLocalTranslation(SHOULDER_WIDTH, 0, 0);
         lUArmGeometry.setLocalTranslation(0, -UARM_LENGTH/2, 0);
         skeletonMap.put(5, leftShoulderNode);
                 
@@ -470,13 +451,13 @@ public class Stickman {
         rHandGeometry.addControl(rHandControl);
 
         HullCollisionShape rForearmCollShape = new HullCollisionShape(rLArmGeometry.getMesh());
-        rForearmControl = new RigidBodyControl(rForearmCollShape, 1.87f);
+        RigidBodyControl rForearmControl = new RigidBodyControl(rForearmCollShape, 1.87f);
         rForearmControl.setKinematic(true);
         rForearmControl.setRestitution(0.5f);
         rLArmGeometry.addControl(rForearmControl);
 
         HullCollisionShape rArmCollShape = new HullCollisionShape(rUArmGeometry.getMesh());
-        rArmControl = new RigidBodyControl(rArmCollShape, 3.25f);
+        RigidBodyControl rArmControl = new RigidBodyControl(rArmCollShape, 3.25f);
         rArmControl.setKinematic(true);
         rArmControl.setRestitution(0.5f);
         rUArmGeometry.addControl(rArmControl);

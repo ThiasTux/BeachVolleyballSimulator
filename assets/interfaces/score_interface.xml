@@ -5,30 +5,64 @@
     <useStyles filename="nifty-default-styles.xml"/>
     <useControls filename="nifty-default-controls.xml"/>
     <screen id="controls" controller="com.thiastux.beachvolleyhuman.BeachVolleyballSimulator">
-        <layer id="foreground" childLayout="horizontal">
+        <layer id="toplayer" childLayout="horizontal">
             <panel id="containerPanel" width="100%"
                    childLayout="horizontal" valign="top"
-                   backgroundColor="#fff0" height="10%"
+                   backgroundColor="#fff0" height="5%"
                    visibleToMouse="true">
                 <panel id="numShots" width="10%"
                        childLayout="horizontal" valign="center"
                        backgroundColor="#f00f" height="100%">
-                    <text id="numShotsText" font="Interface/Fonts/Default.fnt" style="nifty-label"
-                          color="#ffff" text="20" align="center"
+                    <text id="numShotsText" font="fonts/ubuntu_40.fnt" style="nifty-label"
+                          color="#ffff" text="0/3" align="center"
                           valign="center" height="100%"
                           width="100%"/>
                 </panel>
-                <panel id="spacer" width="80%"
+                <panel id="spacer" width="30%"
                        childLayout="horizontal" valign="center"
                        backgroundColor="#fff0" height="100%"/>
-                <panel id="points" width="10%"
+                <panel id="playerName" width="20%"
+                       childLayout="horizontal" valign="center"
+                       align="center"
+                       backgroundColor="#f00f" height="100%">
+                    <text id="playerNameText" font="fonts/ubuntu_40.fnt" style="nifty-label"
+                          color="#ffff" text="mathias" align="center"
+                          valign="center" height="100%"
+                          width="100%"/>
+                </panel>
+                <panel id="spacer" width="30%"
+                       childLayout="horizontal" valign="center"
+                       backgroundColor="#fff0" height="100%"/>
+                <panel id="score" width="10%"
                        childLayout="horizontal" valign="center"
                        backgroundColor="#f00f" height="100%">
-                    <text id="score" font="Interface/Fonts/Default.fnt" assestyle="nifty-label"
-                          color="#ffff" text="20" align="center"
-                          valign="center" height="90%"
-                          width="90%"/>
+                    <text id="scoreText" font="fonts/ubuntu_40.fnt" assestyle="nifty-label"
+                          color="#ffff" text="000" align="center"
+                          valign="center" height="100%"
+                          width="100%"/>
                 </panel>
+            </panel>
+        </layer>
+        <layer id="sidelayer" childLayout="vertical">
+            <panel id="containerPanel" width="10%"
+                   childLayout="vertical" valign="top"
+                   backgroundColor="#fff0" height="95%"
+                   visibleToMouse="true"
+                   align="right">
+                <panel id="spacer" width="100%"
+                       childLayout="horizontal" valign="center"
+                       backgroundColor="#fff0" height="20%"/>
+                <panel id="numShots" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#f00f" height="60%">
+                    <text id="playerChartText" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                          color="#ffff" text="mathias" align="top"
+                          valign="top" height="10%"
+                          width="100%"/>
+                </panel>
+                <panel id="spacer" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#fff0" height="20%"/>
             </panel>
         </layer>
     </screen>
