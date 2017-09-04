@@ -147,10 +147,6 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
     public void simpleUpdate(float tpf) {
         elapsedTime += tpf;
         boolean animStart = Const.animationStart;
-        if (elapsedTime >= 5) {
-            createBall();
-            elapsedTime = 0;
-        }
         if (animStart) {
             getData();
             animateModel();
@@ -251,7 +247,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
     private void initPhysics() {
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
-        bulletAppState.setDebugEnabled(true);
+        //bulletAppState.setDebugEnabled(true);
         bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -19.81f, 0));
         //bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
         bulletAppState.getPhysicsSpace().addTickListener(this);
@@ -369,14 +365,14 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         Vector3f direction = currTrajectory.getDirection();
         int multiplier = currTrajectory.getMultiplier();
         //System.out.println(String.format("%.2f, %.2f, %.2f, %d - ", direction.x, direction.y, direction.z, multiplier));
-        ballPhy.setLinearVelocity(direction.mult(multiplier));
+        //ballPhy.setLinearVelocity(direction.mult(multiplier));
+        ballPhy.setLinearVelocity(new Vector3f(0, 2f, 0).mult(10));
 
         numShotsTextview.setText(String.format("%d/%d", numShots, MAX_SHOTS));
     }
 
     private void initTrajectories() {
         trajectories = TrajectoriesCreator.getDefaultTrajectories().getTrajectories();
-        MAX_SHOTS = trajectories.size();
         numShotsTextview.setText(String.format("%d/%d", numShots, MAX_SHOTS));
     }
 
@@ -758,17 +754,22 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
     }
 
     private void hitBall(PhysicsCollisionEvent event, Spatial ball, Spatial hand) {
-        System.out.println("Num shots: " + numShots);
-        Vector3f prevVector = prevPos.get(prevPos.size() - 10);
-        System.out.println("PrevVector: " + prevVector.toString());
-        Vector3f currVector = rHandControl.getPhysicsLocation();
-        System.out.println("CurrVector: " + currVector.toString());
-        float appliedImpulse = prevVector.distance(currVector);
-        Vector3f direction = currVector.subtract(prevVector);
-        System.out.println("Direction: " + direction.toString());
-        System.out.println("Applied impulse: " + appliedImpulse);
-        ballPhy.setLinearVelocity(direction.mult(appliedImpulse * 10f));
-        prevDist = new ArrayList<>();
+        Vector3f handPosition = rHandControl.getPhysicsLocation();
+        Vector3f ballPosition = ballPhy.getPhysicsLocation();
+        Vector3f tmp = ballPosition.subtract(handPosition);
+        float minDist = Float.MAX_VALUE;
+        Trajectory minTrajectory = null;
+        for (Trajectory trajectory : trajectories) {
+            float dist = trajectory.getDirection().distance(tmp);
+            if (dist < minDist) {
+                minDist = dist;
+                minTrajectory = trajectory;
+            }
+        }
+        if (minTrajectory != null) {
+            ballPhy.setLinearVelocity(minTrajectory.getDirection().mult(minTrajectory.getMultiplier()));
+            numEvent = 0;
+        }
     }
 
     private void hitTarget(int target) {

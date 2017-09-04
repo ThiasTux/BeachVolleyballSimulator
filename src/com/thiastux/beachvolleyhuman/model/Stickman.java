@@ -220,7 +220,7 @@ public class Stickman {
         rWristGeometry.setMaterial(mat);
 
         //Right hand
-        Box rHandMesh = new Box(HAND_THICKNESS, HAND_LENGTH, HAND_WIDTH);
+        Box rHandMesh = new Box(HAND_THICKNESS, HAND_LENGTH * 2, HAND_WIDTH * 2);
         Geometry rHandGeometry = new Geometry("rHandGeometry", rHandMesh);
         mat = new Material(assetManager,
                 "Common/MatDefs/Light/Lighting.j3md");
