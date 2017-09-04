@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <useStyles filename="nifty-default-styles.xml"/>
+    <useControls filename="nifty-default-controls.xml"/>
+    <screen id="popupScreen" controller="com.thiastux.beachvolleyhuman.BeachVolleyballSimulator">
+        <layer id="popupLayer" childLayout="center">
+            <panel id="playerNamePanel" width="100%" childLayout="vertical"
+                   valign="center" backgroundColor="#f00f" height="30%" visibleToMouse="true">
+                <text id="playerLabel" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                      color="#ffff" text="Thank you for having played with us." align="center"
+                      valign="center" height="70%"
+                      width="100%"/>
+                <panel id="startGameButton" align="center" valign="center" childLayout="center"
+                       visibleToMouse="true" backgroundColor="#ff0f" width="20%" height="20%">
+                    <text id="startGameLabel" width="100%" height="100%" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                          color="#000f" text="Play Again" align="center" visibleToMouse="False"/>
+                    <interact onClick="resetGame()"/>
+                </panel>
+                <panel width="100%" height="10%"/>
+            </panel>
+        </layer>
+    </screen>
+</nifty>

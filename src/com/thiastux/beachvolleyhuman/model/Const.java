@@ -15,6 +15,9 @@ import java.util.Map;
  */
 public class Const {
 
+    public static final int START_GAME = 1;
+    public static final int RESET_GAME = 0;
+    public static final int END_GAME = 2;
     public static boolean animationStart = false;
     
     public static boolean useLegs=false;

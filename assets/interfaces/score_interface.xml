@@ -5,7 +5,7 @@
     <useStyles filename="nifty-default-styles.xml"/>
     <useControls filename="nifty-default-controls.xml"/>
     <screen id="controls" controller="com.thiastux.beachvolleyhuman.BeachVolleyballSimulator">
-        <layer id="toplayer" childLayout="horizontal">
+        <layer id="toplayer" childLayout="vertical">
             <panel id="containerPanel" width="100%"
                    childLayout="horizontal" valign="top"
                    backgroundColor="#fff0" height="5%"
@@ -13,7 +13,7 @@
                 <panel id="numShots" width="10%"
                        childLayout="horizontal" valign="center"
                        backgroundColor="#f00f" height="100%">
-                    <text id="numShotsText" font="fonts/ubuntu_40.fnt" style="nifty-label"
+                    <text id="numShotsText" font="fonts/ubuntu_38.fnt" style="nifty-label"
                           color="#ffff" text="0/3" align="center"
                           valign="center" height="100%"
                           width="100%"/>
@@ -25,8 +25,8 @@
                        childLayout="horizontal" valign="center"
                        align="center"
                        backgroundColor="#f00f" height="100%">
-                    <text id="playerNameText" font="fonts/ubuntu_40.fnt" style="nifty-label"
-                          color="#ffff" text="mathias" align="center"
+                    <text id="playerNameText" font="fonts/ubuntu_38.fnt" style="nifty-label"
+                          color="#ffff" align="center"
                           valign="center" height="100%"
                           width="100%"/>
                 </panel>
@@ -36,11 +36,18 @@
                 <panel id="score" width="10%"
                        childLayout="horizontal" valign="center"
                        backgroundColor="#f00f" height="100%">
-                    <text id="scoreText" font="fonts/ubuntu_40.fnt" assestyle="nifty-label"
+                    <text id="scoreText" font="fonts/ubuntu_38.fnt" assestyle="nifty-label"
                           color="#ffff" text="000" align="center"
                           valign="center" height="100%"
                           width="100%"/>
                 </panel>
+            </panel>
+            <panel id="currScorePanel" width="10%" height="5%" backgroundColor="#ff0f" align="right"
+                   childLayout="vertical">
+                <text id="currScoreText" font="fonts/ubuntu_38.fnt" assestyle="nifty-label"
+                      color="#000f" text="000" align="center"
+                      valign="center" height="100%"
+                      width="100%"/>
             </panel>
         </layer>
         <layer id="sidelayer" childLayout="vertical">
@@ -53,16 +60,62 @@
                        childLayout="horizontal" valign="center"
                        backgroundColor="#fff0" height="20%"/>
                 <panel id="numShots" width="100%"
-                       childLayout="vertical" valign="center"
+                       childLayout="horizontal"
                        backgroundColor="#f00f" height="60%">
-                    <text id="playerChartText" font="fonts/ubuntu_24.fnt" style="nifty-label"
-                          color="#ffff" text="mathias" align="top"
-                          valign="top" height="10%"
+                    <text id="playerChartText" font="fonts/ubuntu_24.fnt"
+                          color="#ffff" text="list_of_players" align="top"
+                          valign="top" height="100%"
                           width="100%"/>
                 </panel>
                 <panel id="spacer" width="100%"
                        childLayout="vertical" valign="center"
                        backgroundColor="#fff0" height="20%"/>
+            </panel>
+        </layer>
+        <layer id="leftlayer" childLayout="vertical">
+            <panel id="containerPanel" width="10%"
+                   childLayout="vertical" valign="top"
+                   backgroundColor="#fff0" height="95%"
+                   visibleToMouse="true"
+                   align="left">
+                <panel id="spacer" width="100%"
+                       childLayout="horizontal" valign="center"
+                       backgroundColor="#fff0" height="30%"/>
+                <panel id="10pointsPanel" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#0f0f" height="10%">
+                    <text id="10pointLabel" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                          color="#000f" text="10 points" align="top"
+                          valign="center" height="100%"
+                          width="100%"/>
+                </panel>
+                <panel id="8pointsPanel" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#00ff" height="10%">
+                    <text id="8pointLabel" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                          color="#ffff" text="8 points" align="top"
+                          valign="center" height="100%"
+                          width="100%"/>
+                </panel>
+                <panel id="6pointsPanel" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#ff0f" height="10%">
+                    <text id="6pointLabel" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                          color="#000f" text="6 points" align="top"
+                          valign="center" height="100%"
+                          width="100%"/>
+                </panel>
+                <panel id="4pointsPanel" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#f0ff" height="10%">
+                    <text id="4pointLabel" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                          color="#ffff" text="4 points" align="top"
+                          valign="center" height="100%"
+                          width="100%"/>
+                </panel>
+                <panel id="spacer" width="100%"
+                       childLayout="vertical" valign="center"
+                       backgroundColor="#fff0" height="30%"/>
             </panel>
         </layer>
     </screen>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <useStyles filename="nifty-default-styles.xml"/>
+    <useControls filename="nifty-default-controls.xml"/>
+    <screen id="popupScreen" controller="com.thiastux.beachvolleyhuman.BeachVolleyballSimulator">
+        <layer id="popupLayer" childLayout="center">
+            <panel id="playerNamePanel" width="100%" childLayout="horizontal"
+                   valign="center" backgroundColor="#f00f" height="10%" visibleToMouse="true">
+                <text id="playerLabel" font="fonts/ubuntu_24.fnt" style="nifty-label"
+                      color="#ffff" text="Insert a name:" align="center"
+                      valign="center" height="100%"
+                      width="20%"/>
+                <control name="textfield" maxLength="20"
+                         width="60%" id="userLabel"
+                         visibleToMouse="true" backgroundColor="#ffff"
+                         valign="center" font="fonts/ubuntu_24.fnt"/>
+                <panel label="Start Game" id="startGameButton" align="center" valign="center" childLayout="center"
+                       backgroundColor="#f00f" width="20%" height="80%">
+                    <text id="startGameLabel" width="90%" height="90%" font="fonts/ubuntu_24.fnt"
+                          color="#000f" text="Start Game" backgroundColor="#ff0f" align="center" visibleToMouse="true">
+                        <interact onClick="startGame()"/>
+                    </text>
+                </panel>
+            </panel>
+        </layer>
+    </screen>
+</nifty>
