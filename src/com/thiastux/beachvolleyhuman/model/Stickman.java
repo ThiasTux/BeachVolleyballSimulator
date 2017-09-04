@@ -12,7 +12,6 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -447,7 +446,6 @@ public class Stickman {
         rHandControl = new RigidBodyControl(rHandCollShape, 0.5f);
         rHandControl.setKinematic(true);
         rHandControl.setRestitution(1f);
-        rHandControl.getCollisionShape().setScale(new Vector3f(2, 2, 2));
         rHandGeometry.addControl(rHandControl);
 
         HullCollisionShape rForearmCollShape = new HullCollisionShape(rLArmGeometry.getMesh());
