@@ -45,7 +45,7 @@ import java.util.*;
 
 public class BeachVolleyballSimulator extends SimpleApplication implements PhysicsTickListener, ScreenController {
 
-    private static int MAX_SHOTS = 25;
+    private static int MAX_SHOTS = 15;
     private static boolean DEBUG = false;
     private TCPDataClient tcpDataClient;
     private Stickman stickman;
@@ -168,10 +168,10 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         BeachVolleyballSimulator app = new BeachVolleyballSimulator(Arrays.copyOfRange(args, 3, args.length));
         app.setShowSettings(false);
         AppSettings settings = new AppSettings(true);
-        settings.setWidth(Integer.parseInt(args[1]));
-        settings.setHeight(Integer.parseInt(args[2]));
+        settings.setWidth(1366);
+        settings.setHeight(768);
         settings.setSamples(16);
-        settings.setVSync(true);
+        //settings.setVSync(true);
         app.setSettings(settings);
         app.start();
     }
@@ -241,7 +241,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         Quaternion outputQuat = animationQuaternions[i].normalizeLocal();
 
         outputQuat = outputQuat.mult(preRot);
-        outputQuat = new Quaternion(outputQuat.getX(), -outputQuat.getY(), outputQuat.getZ(), outputQuat.getW());
+        outputQuat = new Quaternion(outputQuat.getX(), outputQuat.getZ(), -outputQuat.getY(), outputQuat.getW());
         previousQuaternions[i] = outputQuat.normalizeLocal();
         outputQuat = conjugate(getPrevLimbQuaternion(i)).mult(outputQuat);
         outputQuat = outputQuat.normalizeLocal();
@@ -278,9 +278,9 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         // Compose two rotations:
         // First, rotate the rendered model to face inside the screen (negative z)
         // Then, rotate the rendered model to have the torso horizontal (facing downwards, leg facing north)
-        Quaternion quat1 = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(90));
-        Quaternion quat2 = new Quaternion().fromAngles((float) Math.toRadians(-90), 0f, 0f);
-        preRot = quat1.mult(quat2);
+        //Quaternion quat1 = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(90));
+        preRot = new Quaternion().fromAngles((float) Math.toRadians(-90), 0f, 0f);
+        //preRot = quat1.mult(quat2);
 
         String print = String.format("qPreRot: %.1f %.1f %.1f %.1f", preRot.getW(), preRot.getX(), preRot.getY(), preRot.getZ());
         System.out.println(print + "    ");
@@ -442,7 +442,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
                 ballGeometry.setMaterial(ballMat);
 
                 rootNode.attachChild(ballGeometry);
-                ballGeometry.setLocalTranslation(-(stickman.SHOULDER_WIDTH + stickman.UARM_RADIUS * 2) - 1, 15, 2.2f);
+                ballGeometry.setLocalTranslation(-(stickman.SHOULDER_WIDTH + stickman.UARM_RADIUS * 2) - 1, 10, 2.2f);
 
                 ballGeometry.setShadowMode(ShadowMode.CastAndReceive);
 
@@ -454,7 +454,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
                 ballGeometry.addControl(ballPhy);
                 bulletAppState.getPhysicsSpace().add(ballPhy);
                 bulletAppState.getPhysicsSpace().addCollisionListener(ballCollisionListener);
-                ballPhy.setLinearVelocity(new Vector3f(0, 2, 0).mult(10));
+                ballPhy.setLinearVelocity(new Vector3f(0, 2.2f, 0).mult(10));
                 bulletAppState.getPhysicsSpace().addCollisionListener(targetCollisionListener);
                 numShotsTextview.setText(String.format("%d/%d", numShots, MAX_SHOTS));
                 numBallEvent = 0;

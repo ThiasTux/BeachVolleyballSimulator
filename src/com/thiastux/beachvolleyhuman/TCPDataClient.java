@@ -64,7 +64,7 @@ public class TCPDataClient extends Thread {
                                 qz = Float.parseFloat(values[columnValues[3].intValue()]);
                                 synchronized (lock) {
                                     Const.animationStart = true;
-                                    animationPacket[i] = new Quaternion(-qz / 1000.0f, -qy / 1000.0f, -qx / 1000.0f, qw / 1000.0f);
+                                    animationPacket[i] = new Quaternion(qx / 1000.0f, qy / 1000.0f, qz / 1000.0f, qw / 1000.0f);
                                 }
                             } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
                                 animationPacket[i] = null;
