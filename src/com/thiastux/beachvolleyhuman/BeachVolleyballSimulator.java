@@ -168,8 +168,8 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         BeachVolleyballSimulator app = new BeachVolleyballSimulator(Arrays.copyOfRange(args, 3, args.length));
         app.setShowSettings(false);
         AppSettings settings = new AppSettings(true);
-        settings.setWidth(1366);
-        settings.setHeight(768);
+        settings.setWidth(1920);
+        settings.setHeight(1050);
         settings.setSamples(16);
         //settings.setVSync(true);
         app.setSettings(settings);
@@ -241,7 +241,7 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         Quaternion outputQuat = animationQuaternions[i].normalizeLocal();
 
         outputQuat = outputQuat.mult(preRot);
-        outputQuat = new Quaternion(outputQuat.getX(), outputQuat.getZ(), -outputQuat.getY(), outputQuat.getW());
+        outputQuat = new Quaternion(-outputQuat.getX(), outputQuat.getZ(), outputQuat.getY(), outputQuat.getW());
         previousQuaternions[i] = outputQuat.normalizeLocal();
         outputQuat = conjugate(getPrevLimbQuaternion(i)).mult(outputQuat);
         outputQuat = outputQuat.normalizeLocal();
@@ -279,7 +279,8 @@ public class BeachVolleyballSimulator extends SimpleApplication implements Physi
         // First, rotate the rendered model to face inside the screen (negative z)
         // Then, rotate the rendered model to have the torso horizontal (facing downwards, leg facing north)
         //Quaternion quat1 = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(90));
-        preRot = new Quaternion().fromAngles((float) Math.toRadians(-90), 0f, 0f);
+        //preRot = new Quaternion().fromAngles((float) Math.toRadians(90), 0f, 0f);
+        preRot = new Quaternion().fromAngles(0f, 0f, (float) Math.toRadians(-180));
         //preRot = quat1.mult(quat2);
 
         String print = String.format("qPreRot: %.1f %.1f %.1f %.1f", preRot.getW(), preRot.getX(), preRot.getY(), preRot.getZ());
