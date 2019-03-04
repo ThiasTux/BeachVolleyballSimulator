@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BeachVolleyballSimulatorDeploy" type="Application" factoryName="Application" singleton="false">
+    <option name="MAIN_CLASS_NAME" value="com.thiastux.beachvolleyhuman.BeachVolleyballSimulator" />
+    <module name="BeachvolleyHuman" />
+    <option name="PROGRAM_PARAMETERS" value="false 1400 1050 127.0.0.1 9432 -tor 3 4 5 6 -rua 8 9 10 11 -rla 13 14 15 16 -rha 18 19 20 21" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.thiastux.beachvolleyhuman.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
